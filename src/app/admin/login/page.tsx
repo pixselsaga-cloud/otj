@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
-import { ShieldCheck, ArrowRight, Lock } from "lucide-react";
+import { ShieldCheck, ArrowRight } from "lucide-react";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -50,7 +50,7 @@ export default function AdminLoginPage() {
       {/* Ambient Glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#A3E635]/10 rounded-full blur-[140px] pointer-events-none" />
 
-      <div className="w-full max-w-md p-8 sm:p-10 rounded-3xl glass-panel border border-white/10 bg-[#0D1112]/95 shadow-2xl space-y-6 relative z-10">
+      <div className="w-full max-w-md p-6 sm:p-10 rounded-3xl glass-panel border border-white/10 bg-[#0D1112]/95 shadow-2xl space-y-6 relative z-10">
         <div className="text-center space-y-2">
           <div className="w-12 h-12 rounded-2xl bg-[#A3E635]/15 border border-[#A3E635]/30 text-[#A3E635] flex items-center justify-center mx-auto shadow-inner">
             <ShieldCheck className="w-6 h-6" />
@@ -65,8 +65,9 @@ export default function AdminLoginPage() {
 
         <form onSubmit={handleLogin} className="space-y-4 pt-2">
           <Input
-            label="Login yoki Email (Username)"
-            placeholder="Otajon2009$ yoki admin@otj.studio"
+            label="Login"
+            type="text"
+            placeholder=""
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
@@ -76,7 +77,7 @@ export default function AdminLoginPage() {
           <Input
             label="Parol"
             type="password"
-            placeholder="••••••••"
+            placeholder=""
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
