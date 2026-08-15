@@ -3,18 +3,28 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { ArrowUpRight, MapPin, Mail, Send, CheckCircle2, Sparkles, Cpu, ShieldCheck } from "lucide-react";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function AboutPage() {
-  const [settings, socials] = await Promise.all([
-    prisma.siteSettings.findUnique({
-      where: { id: "default" },
-    }),
-    prisma.socialLink.findMany({
-      where: { isActive: true },
-      orderBy: { sortOrder: "asc" },
-    }),
-  ]);
+  let settings: any = null;
+  let socials: any[] = [];
+
+  try {
+    const res = await Promise.all([
+      prisma.siteSettings.findUnique({
+        where: { id: "default" },
+      }),
+      prisma.socialLink.findMany({
+        where: { isActive: true },
+        orderBy: { sortOrder: "asc" },
+      }),
+    ]);
+    settings = res[0];
+    socials = res[1] || [];
+  } catch (err) {
+    console.warn("About page database query skipped gracefully during build.");
+  }
 
   return (
     <div className="pt-32 pb-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 font-sans">
@@ -59,93 +69,86 @@ export default async function AboutPage() {
                 <ArrowUpRight className="w-4 h-4 ml-1" />
               </Button>
             </Link>
-            <a href="https://t.me/otajon9999" target="_blank" rel="noopener noreferrer">
+            <Link href="/works">
               <Button size="md" variant="glass" className="font-medium text-xs">
-                <span>To'g'ridan-to'g'ri bog'lanish</span>
+                <span>Portfolio ko'rish</span>
               </Button>
-            </a>
+            </Link>
           </div>
         </div>
 
-        {/* Profile Image (Clean Avatar) */}
-        <div className="lg:col-span-5 relative">
-          <div className="relative rounded-3xl p-3 glass-panel border border-white/10 bg-[#080A0B] overflow-hidden shadow-2xl">
-            <div className="relative aspect-square rounded-2xl overflow-hidden bg-[#050607]">
-              <img
-                src="/avatar.jpg"
-                alt="Otajon Jahongirov"
-                className="w-full h-full object-cover object-center"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#080A0B] via-transparent to-transparent opacity-40" />
+        {/* Profile Image Column */}
+        <div className="lg:col-span-5 flex justify-center">
+          <div className="relative w-full max-w-sm aspect-[4/5] rounded-3xl overflow-hidden glass-panel border border-white/15 p-2 bg-[#080A0B] shadow-2xl group">
+            <img
+              src="/avatar.jpg"
+              alt="Otajon Jahongirov"
+              className="w-full h-full object-cover rounded-2xl group-hover:scale-105 transition-transform duration-700"
+            />
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-t from-[#080A0B] via-transparent to-transparent opacity-60" />
+            <div className="absolute bottom-6 left-6 right-6">
+              <p className="text-xs font-mono font-bold text-[#A3E635] uppercase tracking-wider">AI MENEJER</p>
+              <p className="text-base font-bold text-[#F5F7F2] font-display">Otajon Jahongirov</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Metrics Banner */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 p-8 rounded-3xl glass-panel border border-white/10 bg-[#080A0B]/60 mb-20 text-center">
+      {/* Stats Banner */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-8 rounded-3xl glass-panel border border-white/10 bg-[#080A0B]/60 mb-20">
         <div>
-          <p className="text-4xl sm:text-5xl font-display font-bold text-[#A3E635] tracking-tight">
-            3+
-          </p>
-          <p className="text-xs text-[#9CA3AF] mt-1 font-sans font-medium uppercase">Yillik Tajriba</p>
+          <span className="text-3xl sm:text-4xl font-extrabold font-display text-[#A3E635]">3+</span>
+          <p className="text-xs font-mono text-[#9CA3AF] mt-1 uppercase">Yillik Tajriba</p>
         </div>
         <div>
-          <p className="text-4xl sm:text-5xl font-display font-bold text-[#F5F7F2] tracking-tight">
-            127+
-          </p>
-          <p className="text-xs text-[#9CA3AF] mt-1 font-sans font-medium uppercase">Mamnun Mijozlar</p>
+          <span className="text-3xl sm:text-4xl font-extrabold font-display text-[#A3E635]">127+</span>
+          <p className="text-xs font-mono text-[#9CA3AF] mt-1 uppercase">Mamnun Mijozlar</p>
         </div>
         <div>
-          <p className="text-4xl sm:text-5xl font-display font-bold text-[#F5F7F2] tracking-tight">
-            8
-          </p>
-          <p className="text-xs text-[#9CA3AF] mt-1 font-sans font-medium uppercase">Global Hamkor</p>
+          <span className="text-3xl sm:text-4xl font-extrabold font-display text-[#A3E635]">8</span>
+          <p className="text-xs font-mono text-[#9CA3AF] mt-1 uppercase">Global Hamkor</p>
         </div>
         <div>
-          <p className="text-4xl sm:text-5xl font-display font-bold text-[#A3E635] tracking-tight">
-            100%
-          </p>
-          <p className="text-xs text-[#9CA3AF] mt-1 font-sans font-medium uppercase">Sifat Kafolati</p>
+          <span className="text-3xl sm:text-4xl font-extrabold font-display text-[#A3E635]">100%</span>
+          <p className="text-xs font-mono text-[#9CA3AF] mt-1 uppercase">Sifat Kafolati</p>
         </div>
       </div>
 
-      {/* Core Principles / Approach */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="p-8 rounded-3xl glass-panel border border-white/10 bg-[#080A0B]/80 space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-[#A3E635]/15 text-[#A3E635] flex items-center justify-center mb-4">
-            <Cpu className="w-6 h-6" />
+      {/* Philosophy / Approach */}
+      <div className="space-y-8 mb-20">
+        <h2 className="text-2xl sm:text-4xl font-bold font-display text-[#F5F7F2]">
+          Mening Ish Prinsiplarim
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="p-8 rounded-3xl glass-panel border border-white/10 bg-[#080A0B]/80 space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-[#A3E635]/15 border border-[#A3E635]/30 flex items-center justify-center text-[#A3E635]">
+              <Cpu className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-bold font-display text-[#F5F7F2]">AI Integratsiyasi</h3>
+            <p className="text-xs sm:text-sm text-[#9CA3AF] leading-relaxed">
+              Dizayn va vizual kontent yaratishda eng so'nggi sun'iy intellekt modellaridan unumli foydalanib, jarayonni 5x tezlashtiraman.
+            </p>
           </div>
-          <h3 className="text-xl font-display font-semibold text-[#F5F7F2]">
-            AI & Smart Ishlov
-          </h3>
-          <p className="text-xs sm:text-sm text-[#9CA3AF] leading-relaxed">
-            Ilg'or sun'iy intellekt texnologiyalarini qo'llagan holda loyihalarni bir necha barobar tez va yuqori aniqlikda boshqarish.
-          </p>
-        </div>
 
-        <div className="p-8 rounded-3xl glass-panel border border-white/10 bg-[#080A0B]/80 space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-[#A3E635]/15 text-[#A3E635] flex items-center justify-center mb-4">
-            <Sparkles className="w-6 h-6" />
+          <div className="p-8 rounded-3xl glass-panel border border-white/10 bg-[#080A0B]/80 space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-[#A3E635]/15 border border-[#A3E635]/30 flex items-center justify-center text-[#A3E635]">
+              <Sparkles className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-bold font-display text-[#F5F7F2]">Mukammal Vizual Sifat</h3>
+            <p className="text-xs sm:text-sm text-[#9CA3AF] leading-relaxed">
+              Har bir piksel, tekstura va yorug'lik effektini chuqur tahlil qilib, brendingizga xos bo'lgan premium ko'rinish yarataman.
+            </p>
           </div>
-          <h3 className="text-xl font-display font-semibold text-[#F5F7F2]">
-            Vizual Standart
-          </h3>
-          <p className="text-xs sm:text-sm text-[#9CA3AF] leading-relaxed">
-            Har bir detal, kompozitsiya va rang uyg'unligida xalqaro darajadagi Dark Luxury va estetik mukammallik.
-          </p>
-        </div>
 
-        <div className="p-8 rounded-3xl glass-panel border border-white/10 bg-[#080A0B]/80 space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-[#A3E635]/15 text-[#A3E635] flex items-center justify-center mb-4">
-            <ShieldCheck className="w-6 h-6" />
+          <div className="p-8 rounded-3xl glass-panel border border-white/10 bg-[#080A0B]/80 space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-[#A3E635]/15 border border-[#A3E635]/30 flex items-center justify-center text-[#A3E635]">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-bold font-display text-[#F5F7F2]">Aniq Muddat & Shaffoflik</h3>
+            <p className="text-xs sm:text-sm text-[#9CA3AF] leading-relaxed">
+              Mijoz portali orqali loyihaning har bir bosqichini real vaqtda kuzatib borasiz, barcha fayllar o'z vaqtida topshiriladi.
+            </p>
           </div>
-          <h3 className="text-xl font-display font-semibold text-[#F5F7F2]">
-            Shaffoflik & Muddat
-          </h3>
-          <p className="text-xs sm:text-sm text-[#9CA3AF] leading-relaxed">
-            Mijoz bilan doimiy aloqa, aniq muddatlarga qat'iy rioya qilish va tayyor sifatli natija topshirish.
-          </p>
         </div>
       </div>
     </div>

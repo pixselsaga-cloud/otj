@@ -8,31 +8,54 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { ArrowUpRight } from "lucide-react";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function HomePage() {
-  const [settings, stats, projects, services, processSteps] = await Promise.all([
-    prisma.siteSettings.findUnique({
-      where: { id: "default" },
-    }),
-    prisma.statistic.findMany({
-      where: { isVisible: true },
-      orderBy: { sortOrder: "asc" },
-    }),
-    prisma.project.findMany({
-      where: { deletedAt: null, status: "PUBLISHED" },
-      orderBy: [{ featured: "desc" }, { sortOrder: "asc" }, { createdAt: "desc" }],
-      take: 6,
-    }),
-    prisma.service.findMany({
-      where: { deletedAt: null, status: "PUBLISHED" },
-      orderBy: { sortOrder: "asc" },
-    }),
-    prisma.processStep.findMany({
-      where: { isVisible: true },
-      orderBy: { sortOrder: "asc" },
-    }),
-  ]);
+  let settings = null;
+  let stats: any[] = [];
+  let projects: any[] = [];
+  let services: any[] = [];
+  let processSteps: any[] = [];
+
+  try {
+    const [
+      fetchedSettings,
+      fetchedStats,
+      fetchedProjects,
+      fetchedServices,
+      fetchedSteps,
+    ] = await Promise.all([
+      prisma.siteSettings.findUnique({
+        where: { id: "default" },
+      }),
+      prisma.statistic.findMany({
+        where: { isVisible: true },
+        orderBy: { sortOrder: "asc" },
+      }),
+      prisma.project.findMany({
+        where: { deletedAt: null, status: "PUBLISHED" },
+        orderBy: [{ featured: "desc" }, { sortOrder: "asc" }, { createdAt: "desc" }],
+        take: 6,
+      }),
+      prisma.service.findMany({
+        where: { deletedAt: null, status: "PUBLISHED" },
+        orderBy: { sortOrder: "asc" },
+      }),
+      prisma.processStep.findMany({
+        where: { isVisible: true },
+        orderBy: { sortOrder: "asc" },
+      }),
+    ]);
+
+    settings = fetchedSettings;
+    stats = fetchedStats;
+    projects = fetchedProjects;
+    services = fetchedServices;
+    processSteps = fetchedSteps;
+  } catch (err) {
+    console.warn("Home page database fetch skipped during build:", err);
+  }
 
   return (
     <div className="w-full font-sans">

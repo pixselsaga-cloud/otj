@@ -1,16 +1,22 @@
 import prisma from "@/lib/prisma";
 import { WorksGrid } from "@/components/public/WorksGrid";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function WorksPage() {
-  const projects = await prisma.project.findMany({
-    where: {
-      deletedAt: null,
-      status: "PUBLISHED",
-    },
-    orderBy: [{ featured: "desc" }, { sortOrder: "asc" }, { createdAt: "desc" }],
-  });
+  let projects: any[] = [];
+  try {
+    projects = await prisma.project.findMany({
+      where: {
+        deletedAt: null,
+        status: "PUBLISHED",
+      },
+      orderBy: [{ featured: "desc" }, { sortOrder: "asc" }, { createdAt: "desc" }],
+    });
+  } catch (err) {
+    console.warn("Works page database query skipped gracefully during build.");
+  }
 
   const categories = [
     "ALL",

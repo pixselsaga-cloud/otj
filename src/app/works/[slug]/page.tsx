@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { WorksGrid } from "@/components/public/WorksGrid";
 import { getWatermarkStyle } from "@/lib/watermark";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function ProjectDetailPage({
@@ -13,13 +14,18 @@ export default async function ProjectDetailPage({
 }: {
   params: { slug: string };
 }) {
-  const project = await prisma.project.findUnique({
-    where: { slug: params.slug },
-    include: {
-      media: { where: { deletedAt: null }, orderBy: { sortOrder: "asc" } },
-      versions: { orderBy: { createdAt: "desc" } },
-    },
-  });
+  let project: any = null;
+  try {
+    project = await prisma.project.findUnique({
+      where: { slug: params.slug },
+      include: {
+        media: { where: { deletedAt: null }, orderBy: { sortOrder: "asc" } },
+        versions: { orderBy: { createdAt: "desc" } },
+      },
+    });
+  } catch (err) {
+    console.warn("Project detail build-time fetch skipped:", err);
+  }
 
   if (!project || project.deletedAt || project.status !== "PUBLISHED") {
     notFound();
