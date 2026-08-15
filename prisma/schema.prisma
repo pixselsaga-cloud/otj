@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -523,25 +523,25 @@ model SiteSettings {
   headlineUz        String   @default("Visual g'oyalarni haqiqiy tajribaga aylantiraman.")
   headlineRu        String   @default("Превращаю визуальные идеи в осязаемый опыт.")
   headlineEn        String   @default("Transforming visual concepts into immersive reality.")
-  bioUz             String   @default("Professional 3D CGI, Brand Identity va UI/UX dizayner. Xalqaro brendlar va mahsulotlar uchun yuqori darajadagi vizual tizimlar yarataman.")
-  bioRu             String   @default("Профессиональный 3D CGI, Brand Identity и UI/UX дизайнер. Создаю премиальные визуальные системы для международных брендов.")
-  bioEn             String   @default("Professional 3D CGI, Brand Identity & UI/UX Designer crafting high-end visual systems for forward-thinking global brands.")
+  bioUz             String   @default("Professional AI Menejer & Visual Director.")
+  bioRu             String   @default("Профессиональный AI Менеджер и Visual Director.")
+  bioEn             String   @default("Professional AI Manager & Visual Director.")
   longBioUz         String?
   longBioRu         String?
   longBioEn         String?
-  profilePhoto      String   @default("/avatars/otajon.jpg")
+  profilePhoto      String   @default("/avatar.jpg")
   coverImage        String?  @default("/covers/studio-hero.jpg")
-  email             String   @default("otajon@otj.studio")
+  email             String   @default("pixselsaga@gmail.com")
   phone             String   @default("+998 90 000 00 00")
-  telegram          String   @default("@otajon_j")
-  location          String   @default("Tashkent, Uzbekistan")
+  telegram          String   @default("@otajon9999")
+  location          String   @default("Navoiy, O'zbekiston")
   availabilityUz    String   @default("Yangi loyihalar uchun ochiq")
   availabilityRu    String   @default("Доступен для новых проектов")
   availabilityEn    String   @default("Available for new projects")
-  yearsOfExperience Int      @default(6)
-  clientCount       Int      @default(50)
-  projectCount      Int      @default(120)
-  awardCount        Int      @default(7)
+  yearsOfExperience Int      @default(3)
+  clientCount       Int      @default(127)
+  projectCount      Int      @default(8)
+  awardCount        Int      @default(0)
   footerTextUz      String   @default("Zamonaviy vizual texnologiyalar va mukammal dizayn standarti.")
   footerTextRu      String   @default("Современные визуальные технологии и бескомпромиссные стандарты дизайна.")
   footerTextEn      String   @default("Modern visual engineering and uncompromised design excellence.")
@@ -553,16 +553,16 @@ model SiteSettings {
   watermarkOpacity  Float    @default(0.35)
   watermarkSize     Int      @default(18)
   watermarkEnabled  Boolean  @default(true)
-  seoTitleUz        String?  @default("Otajon Jahongirov — Premium 3D CGI, Motion & Digital Studio")
-  seoTitleRu        String?  @default("Отаджон Джахонгиров — Премиальная 3D CGI и Дизайн Студия")
-  seoTitleEn        String?  @default("Otajon Jahongirov — Premium 3D CGI, Motion & Design Studio")
-  seoDescUz         String?  @default("3D CGI, Brand Identity, UI/UX va Motion dizayn bo'yicha premium darajadagi raqamli studiya.")
-  seoDescRu         String?  @default("Премиальная цифровая студия 3D CGI, брендинга, UI/UX и моушн-дизайна.")
-  seoDescEn         String?  @default("High-end creative studio specializing in 3D CGI, brand systems, UI/UX and cinematic motion.")
+  seoTitleUz        String?  @default("Otajon Jahongirov — AI Menejer & Visual Studio")
+  seoTitleRu        String?  @default("Отаджон Джахонгиров — AI Менеджер и Дизайн Студия")
+  seoTitleEn        String?  @default("Otajon Jahongirov — AI Manager & Visual Studio")
+  seoDescUz         String?  @default("AI Vizualizatsiya, 3D CGI, Brand Identity va raqamli boshqaruv platformasi.")
+  seoDescRu         String?  @default("Премиальная цифровая студия AI визуализации, 3D CGI и брендинга.")
+  seoDescEn         String?  @default("High-end creative studio specializing in AI visuals, 3D CGI and brand management.")
   ogImage           String?  @default("/og-image.jpg")
-  keywordsUz        String?  @default("3d dizayn, cgi, brending, ui ux, vizual effektlar, otajon jahongirov")
-  keywordsRu        String?  @default("3d дизайн, cgi, брендинг, ui ux, визуализация, отаджон джахонгиров")
-  keywordsEn        String?  @default("3d cgi, visual design, branding, ui ux, motion graphics, otajon jahongirov")
+  keywordsUz        String?  @default("ai vizualizatsiya, 3d dizayn, cgi, brending, otajon jahongirov, navoiy")
+  keywordsRu        String?  @default("ai визуализация, 3d дизайн, cgi, брендинг, отаджон джахонгиров")
+  keywordsEn        String?  @default("ai visual, 3d cgi, visual design, branding, otajon jahongirov")
   canonicalUrl      String?  @default("https://otj.studio")
   robotsSettings    String   @default("index, follow")
   updatedAt         DateTime @updatedAt
