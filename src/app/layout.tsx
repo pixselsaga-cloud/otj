@@ -6,14 +6,19 @@ import { Navbar } from "@/components/public/Navbar";
 import { Footer } from "@/components/public/Footer";
 import prisma from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await prisma.siteSettings.findUnique({
-    where: { id: "default" },
-  });
+  let settings = null;
+  try {
+    settings = await prisma.siteSettings.findUnique({
+      where: { id: "default" },
+    });
+  } catch {}
 
   return {
     title: {
-      default: settings?.siteTitle || "Otajon Jahongirov — Visual & 3D Studio",
+      default: settings?.siteTitle || "Otajon Jahongirov — AI Menejer & Visual Studio",
       template: "%s | Otajon Jahongirov",
     },
     description:
@@ -23,7 +28,7 @@ export async function generateMetadata(): Promise<Metadata> {
     authors: [{ name: settings?.authorName || "Otajon Jahongirov" }],
     metadataBase: new URL(settings?.canonicalUrl || "https://otj.studio"),
     openGraph: {
-      title: settings?.seoTitleUz || "Otajon Jahongirov — Visual & 3D Studio",
+      title: settings?.seoTitleUz || "Otajon Jahongirov — AI Menejer & Visual Studio",
       description: settings?.seoDescUz || "Otajon Jahongirov ijodiy ishlari va dizayn xizmatlari.",
       images: [settings?.ogImage || "/og-image.jpg"],
     },
@@ -35,15 +40,22 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [socials, settings] = await Promise.all([
-    prisma.socialLink.findMany({
-      where: { isActive: true },
-      orderBy: { sortOrder: "asc" },
-    }),
-    prisma.siteSettings.findUnique({
-      where: { id: "default" },
-    }),
-  ]);
+  let socials: any[] = [];
+  let settings: any = null;
+
+  try {
+    const [fetchedSocials, fetchedSettings] = await Promise.all([
+      prisma.socialLink.findMany({
+        where: { isActive: true },
+        orderBy: { sortOrder: "asc" },
+      }),
+      prisma.siteSettings.findUnique({
+        where: { id: "default" },
+      }),
+    ]);
+    socials = fetchedSocials;
+    settings = fetchedSettings;
+  } catch {}
 
   return (
     <html lang="uz">
@@ -59,7 +71,6 @@ export default async function RootLayout({
                 footerTextUz: settings?.footerTextUz,
                 footerTextRu: settings?.footerTextRu,
                 footerTextEn: settings?.footerTextEn,
-                copyright: settings?.copyright,
                 email: settings?.email,
                 telegram: settings?.telegram,
                 location: settings?.location,
