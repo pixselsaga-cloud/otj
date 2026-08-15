@@ -19,9 +19,18 @@ export function Navbar() {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+  }, [mobileMenuOpen]);
 
   if (pathname.startsWith("/admin")) {
     return null;
@@ -42,22 +51,22 @@ export function Navbar() {
       <header
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
           scrolled
-            ? "py-3.5 bg-[#050607]/90 backdrop-blur-xl border-b border-white/10 shadow-2xl"
-            : "py-5 bg-transparent"
+            ? "py-2.5 sm:py-3.5 bg-[#050607]/95 backdrop-blur-xl border-b border-white/10 shadow-2xl"
+            : "py-3.5 sm:py-5 bg-transparent"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-          {/* Brand Name (Space Grotesk 600) */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl overflow-hidden border border-white/15 group-hover:border-[#A3E635] transition duration-300 shadow-md bg-[#050607]">
+        <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 flex items-center justify-between">
+          {/* Brand Name */}
+          <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden border border-white/15 group-hover:border-[#A3E635] transition duration-300 shadow-md bg-[#050607] shrink-0">
               <img src="/avatar.jpg" alt="Otajon Jahongirov" className="w-full h-full object-cover" />
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-display font-semibold tracking-tight text-[#F5F7F2] group-hover:text-[#A3E635] transition">
+              <span className="text-xs sm:text-sm font-display font-semibold tracking-tight text-[#F5F7F2] group-hover:text-[#A3E635] transition leading-tight">
                 OTAJON JAHONGIROV
               </span>
-              <span className="text-[10px] font-sans font-medium text-[#9CA3AF] tracking-wider uppercase">
-                STUDIO • VISUAL & 3D
+              <span className="text-[9px] sm:text-[10px] font-sans font-medium text-[#9CA3AF] tracking-wider uppercase leading-tight">
+                AI MENEJER & VISUAL STUDIO
               </span>
             </div>
           </Link>
@@ -89,7 +98,7 @@ export function Navbar() {
             })}
           </nav>
 
-          {/* Right Action & Direct Social Icons (Inter 500-600) */}
+          {/* Right Action & Direct Social Icons */}
           <div className="hidden md:flex items-center gap-3 font-sans">
             <div className="flex items-center gap-1.5 pr-2 border-r border-white/10">
               <a
@@ -136,12 +145,12 @@ export function Navbar() {
             </Link>
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Actions: Language + Menu Toggle */}
           <div className="flex md:hidden items-center gap-2">
             <LanguageSelector />
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl glass-panel text-[#F5F7F2] border border-white/10"
+              className="p-2 rounded-xl bg-white/[0.06] text-[#F5F7F2] border border-white/10 active:scale-95 transition"
               aria-label="Toggle Menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -150,16 +159,17 @@ export function Navbar() {
         </div>
       </header>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Off-canvas Drawer */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed inset-0 z-30 pt-24 px-6 bg-[#050607]/98 backdrop-blur-2xl md:hidden flex flex-col justify-between pb-8 font-sans"
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-30 pt-20 px-5 bg-[#050607]/98 backdrop-blur-xl md:hidden flex flex-col justify-between pb-8 font-sans overflow-y-auto"
           >
-            <div className="space-y-3">
+            <div className="space-y-2 pt-2">
               {navLinks.map((link) => {
                 const isActive = pathname === link.href;
                 return (
@@ -167,7 +177,7 @@ export function Navbar() {
                     key={link.href}
                     href={link.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`block py-3 px-4 rounded-xl text-base font-medium transition ${
+                    className={`block py-3 px-4 rounded-xl text-sm font-medium transition ${
                       isActive
                         ? "bg-[#A3E635]/15 text-[#A3E635] border border-[#A3E635]/30 font-semibold"
                         : "text-[#9CA3AF] hover:text-[#F5F7F2] hover:bg-white/5"
@@ -180,40 +190,40 @@ export function Navbar() {
             </div>
 
             <div className="pt-6 border-t border-white/10 space-y-4">
-              <div className="flex items-center justify-around">
+              <div className="grid grid-cols-3 gap-2">
                 <a
                   href="https://t.me/ustozmee"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-xs font-semibold text-[#A3E635]"
+                  className="py-2.5 px-2 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center gap-1.5 text-xs font-semibold text-[#A3E635]"
                 >
-                  <Send className="w-4 h-4" />
-                  <span>TG Kanal</span>
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Kanal</span>
                 </a>
 
                 <a
                   href="https://t.me/otajon9999"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-xs font-semibold text-[#A3E635]"
+                  className="py-2.5 px-2 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center gap-1.5 text-xs font-semibold text-[#BEF264]"
                 >
-                  <Send className="w-4 h-4" />
-                  <span>TG Lichka</span>
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Lichka</span>
                 </a>
 
                 <a
                   href="https://instagram.com/ustozmee"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-xs font-semibold text-[#A3E635]"
+                  className="py-2.5 px-2 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center gap-1.5 text-xs font-semibold text-[#EC4899]"
                 >
-                  <Instagram className="w-4 h-4" />
-                  <span>Instagram</span>
+                  <Instagram className="w-3.5 h-3.5" />
+                  <span>Insta</span>
                 </a>
               </div>
 
               <Link href="/request" onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="primary" className="w-full justify-center text-sm font-semibold">
+                <Button variant="primary" className="w-full justify-center text-xs font-semibold uppercase tracking-wider py-3.5">
                   {t.hero.startProject}
                 </Button>
               </Link>

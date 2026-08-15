@@ -140,32 +140,32 @@ export default function RequestPage() {
   };
 
   return (
-    <div className="pt-32 pb-24 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 font-sans">
+    <div className="pt-24 sm:pt-32 pb-16 sm:pb-24 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 font-sans">
       {/* Header */}
-      <div className="text-center max-w-2xl mx-auto mb-14">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-mono font-medium text-[#A3E635] tracking-widest uppercase mb-3">
+      <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14 space-y-2">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono font-medium text-[#A3E635] tracking-widest uppercase mb-1">
           <Sparkles className="w-3.5 h-3.5" /> AI BRIEF & LOYIHA SO'ROVI
         </div>
-        <h1 className="text-4xl sm:text-5xl font-display font-semibold tracking-tight text-[#F5F7F2] mb-3">
+        <h1 className="text-3xl sm:text-5xl font-display font-semibold tracking-tight text-[#F5F7F2]">
           {t.request.title}
         </h1>
-        <p className="text-sm sm:text-base font-normal text-[#9CA3AF] leading-relaxed">
+        <p className="text-xs sm:text-base font-normal text-[#9CA3AF] leading-relaxed">
           {t.request.subtitle}
         </p>
       </div>
 
       {isSubmitted ? (
-        <div className="p-12 rounded-3xl glass-panel border border-[#A3E635]/40 bg-[#0D1112] text-center space-y-6">
-          <div className="w-16 h-16 rounded-full bg-[#A3E635]/20 text-[#A3E635] flex items-center justify-center mx-auto">
-            <CheckCircle2 className="w-8 h-8" />
+        <div className="p-8 sm:p-12 rounded-2xl sm:rounded-3xl glass-panel border border-[#A3E635]/40 bg-[#0D1112] text-center space-y-5">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#A3E635]/20 text-[#A3E635] flex items-center justify-center mx-auto">
+            <CheckCircle2 className="w-7 h-7 sm:w-8 sm:h-8" />
           </div>
-          <h3 className="text-2xl sm:text-3xl font-display font-semibold text-[#F5F7F2]">
+          <h3 className="text-xl sm:text-3xl font-display font-semibold text-[#F5F7F2]">
             {t.request.successTitle}
           </h3>
-          <p className="text-sm sm:text-base text-[#9CA3AF] max-w-md mx-auto leading-relaxed">
+          <p className="text-xs sm:text-base text-[#9CA3AF] max-w-md mx-auto leading-relaxed">
             {t.request.successDesc}
           </p>
-          <div className="pt-4">
+          <div className="pt-2">
             <Button
               variant="outline"
               onClick={() => {
@@ -190,11 +190,11 @@ export default function RequestPage() {
           </div>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
           {/* 1. Project Types with Custom Variant Addition */}
-          <div className="p-8 rounded-3xl glass-panel border border-white/10 bg-[#080A0B]/80 space-y-4">
+          <div className="p-5 sm:p-8 rounded-2xl sm:rounded-3xl glass-panel border border-white/10 bg-[#080A0B]/80 space-y-3.5">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-display font-semibold text-[#F5F7F2]">
+              <h3 className="text-sm sm:text-base font-display font-semibold text-[#F5F7F2]">
                 1. Loyiha yo'nalishi (Bir nechta tanlash yoki o'zingiz kiritishingiz mumkin) *
               </h3>
             </div>

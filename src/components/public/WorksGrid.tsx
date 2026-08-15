@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
 import { Eye, Heart, ArrowUpRight, Share2, Send, Instagram, Copy, Check, X } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 
@@ -59,18 +58,20 @@ export function WorksGrid({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           eventType: "PROJECT_LIKE",
-          targetType: "PROJECT",
           targetId: id,
+          targetSlug: slug,
           path: `/works/${slug}`,
-          metadata: { slug },
         }),
       });
 
       if (res.ok) {
-        setLikedList([...likedList, id]);
-        toast.success("Rahmat!", "Loyiha yoqtirishlar ro'yxatiga qo'shildi");
+        setLikedList((prev) => [...prev, id]);
+        toast.success("Rahmat!", "Loyiha sizga ma'qul bo'lganidan xursandmiz.");
       }
-    } catch {}
+    } catch {
+      setLikedList((prev) => [...prev, id]);
+      toast.success("Rahmat!", "Loyiha sizga ma'qul bo'lganidan xursandmiz.");
+    }
   };
 
   const openShare = (e: React.MouseEvent, slug: string, title: string) => {
@@ -78,43 +79,60 @@ export function WorksGrid({
     e.stopPropagation();
     setShareModal({ open: true, slug, title });
     setCopied(false);
-
-    fetch("/api/analytics", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        eventType: "SHARE",
-        targetType: "PROJECT",
-        path: `/works/${slug}`,
-        metadata: { slug, title },
-      }),
-    }).catch(() => {});
   };
 
-  const copyShareLink = () => {
-    if (!shareModal) return;
-    const url = `${window.location.origin}/works/${shareModal.slug}`;
-    navigator.clipboard.writeText(url);
-    setCopied(true);
-    toast.success("Havola nusxalandi!", url);
+  const getShareUrl = (slug: string) => {
+    if (typeof window !== "undefined") {
+      return `${window.location.origin}/works/${slug}`;
+    }
+    return `https://otj.studio/works/${slug}`;
+  };
+
+  const shareTelegram = (slug: string, title: string) => {
+    const url = getShareUrl(slug);
+    const text = encodeURIComponent(`Otajon Jahongirov portfolio loyihasi: "${title}"\n${url}`);
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${text}`, "_blank");
+  };
+
+  const shareInstagram = async (slug: string) => {
+    const url = getShareUrl(slug);
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      toast.success("Havola nusxalandi!", "Instagram profilingizda yoki Stories'da ulashishingiz mumkin.");
+      window.open("https://instagram.com", "_blank");
+    } catch {
+      window.open("https://instagram.com", "_blank");
+    }
+  };
+
+  const copyDirectLink = async (slug: string) => {
+    const url = getShareUrl(slug);
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      toast.success("Havola nusxalandi!", "Istalgan joyga yuborishingiz mumkin.");
+    } catch {
+      toast.info(`Havola: ${url}`);
+    }
     setTimeout(() => setCopied(false), 3000);
   };
 
   return (
-    <div className="space-y-10">
-      {/* Category Pills (Inter 500) */}
+    <div className="space-y-8 sm:space-y-10">
+      {/* Category Pills (Mobile horizontal scroll + Desktop wrap) */}
       {showFilter && (
-        <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 sm:flex-wrap sm:justify-center no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
           {categories.map((cat) => {
             const isCurrent = activeCategory === cat;
             return (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`relative px-4 py-2 rounded-full text-xs font-sans font-medium tracking-wide transition duration-300 ${
+                className={`shrink-0 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs font-sans font-medium tracking-wide transition duration-200 ${
                   isCurrent
-                    ? "bg-[#A3E635] text-[#050607] font-semibold shadow-[0_0_20px_rgba(163,230,53,0.3)]"
-                    : "bg-white/5 text-[#9CA3AF] hover:text-[#F5F7F2] hover:bg-white/10 border border-white/5"
+                    ? "bg-[#A3E635] text-[#050607] font-semibold shadow-[0_0_15px_rgba(163,230,53,0.3)]"
+                    : "bg-white/[0.04] text-[#9CA3AF] hover:text-[#F5F7F2] hover:bg-white/10 border border-white/5"
                 }`}
               >
                 {cat === "ALL" ? "Barcha ishlar" : cat}
@@ -126,225 +144,173 @@ export function WorksGrid({
 
       {/* Projects Grid */}
       {filteredProjects.length === 0 ? (
-        <div className="p-16 text-center rounded-3xl glass-panel border border-dashed border-white/10 space-y-2 font-sans">
+        <div className="p-12 sm:p-16 text-center rounded-2xl sm:rounded-3xl glass-panel border border-dashed border-white/10 space-y-2 font-sans">
           <p className="text-sm font-medium text-[#F5F7F2]">Ushbu kategoriyada loyihalar mavjud emas</p>
           <p className="text-xs text-[#9CA3AF]">Tez orada yangi ishlar yuklanadi</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <AnimatePresence mode="popLayout">
-            {filteredProjects.map((project, index) => {
-              const isLiked = likedList.includes(project.id);
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          {filteredProjects.map((project) => {
+            const isLiked = likedList.includes(project.id);
 
-              return (
-                <motion.div
-                  key={project.id}
-                  layout
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.4, delay: index * 0.05 }}
-                  className="group relative rounded-3xl overflow-hidden glass-panel border border-white/10 hover:border-[#A3E635]/40 transition-all duration-500 bg-[#080A0B]/80 flex flex-col justify-between"
-                >
-                  {/* Image Container */}
-                  <Link href={`/works/${project.slug}`} className="block relative aspect-[4/3] overflow-hidden bg-[#050607]">
-                    <img
-                      src={project.coverImage}
-                      alt={project.titleUz}
-                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
-                    />
+            return (
+              <div
+                key={project.id}
+                className="group relative rounded-2xl sm:rounded-3xl overflow-hidden glass-panel border border-white/10 hover:border-[#A3E635]/40 transition-all duration-300 bg-[#080A0B]/90 flex flex-col justify-between"
+              >
+                {/* Image Container */}
+                <Link href={`/works/${project.slug}`} className="block relative aspect-[4/3] overflow-hidden bg-[#050607]">
+                  <img
+                    src={project.coverImage}
+                    alt={project.titleUz}
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
+                    loading="lazy"
+                  />
 
-                    {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#080A0B] via-transparent to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
+                  {/* Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#080A0B] via-transparent to-transparent opacity-80 sm:opacity-75 sm:group-hover:opacity-60 transition-opacity" />
 
-                    {/* Category Badge (Inter 500-600) */}
-                    <div className="absolute top-4 left-4">
-                      <span className="px-3 py-1 rounded-full text-[10px] font-sans font-medium tracking-wide bg-[#050607]/85 backdrop-blur-md text-[#A3E635] border border-white/10">
-                        {project.category}
-                      </span>
+                  {/* Category Badge */}
+                  <div className="absolute top-3.5 left-3.5">
+                    <span className="px-2.5 py-1 rounded-full text-[10px] font-sans font-medium tracking-wide bg-[#050607]/85 backdrop-blur-md text-[#A3E635] border border-white/10">
+                      {project.category}
+                    </span>
+                  </div>
+
+                  {/* Top Right Quick Actions (Touch accessible on mobile) */}
+                  <div className="absolute top-3.5 right-3.5 flex items-center gap-1.5 opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">
+                    <button
+                      onClick={(e) => openShare(e, project.slug, project.titleUz)}
+                      className="p-2 rounded-xl bg-[#050607]/80 backdrop-blur-md text-[#F5F7F2] hover:text-[#A3E635] border border-white/10 active:scale-95 transition"
+                      title="Telegram / Instagram orqali ulashish"
+                      aria-label="Ulashish"
+                    >
+                      <Share2 className="w-3.5 h-3.5" />
+                    </button>
+
+                    <button
+                      onClick={(e) => handleLike(e, project.id, project.slug)}
+                      className={`p-2 rounded-xl bg-[#050607]/80 backdrop-blur-md border border-white/10 active:scale-95 transition ${
+                        isLiked ? "text-rose-500" : "text-[#F5F7F2] hover:text-rose-400"
+                      }`}
+                      title="Yoqtirish"
+                      aria-label="Yoqtirish"
+                    >
+                      <Heart className="w-3.5 h-3.5" fill={isLiked ? "currentColor" : "none"} />
+                    </button>
+                  </div>
+                </Link>
+
+                {/* Info Content */}
+                <div className="p-5 sm:p-6 space-y-3 flex-1 flex flex-col justify-between font-sans">
+                  <div>
+                    {/* Metadata */}
+                    <div className="flex items-center justify-between text-[11px] font-sans text-[#6B7280] mb-1">
+                      <span>{project.client || "Shaxsiy"}</span>
+                      <span>{project.year || "2026"}</span>
                     </div>
 
-                    {/* Top Right Quick Actions (Share & Like) */}
-                    <div className="absolute top-4 right-4 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <button
-                        onClick={(e) => openShare(e, project.slug, project.titleUz)}
-                        className="p-2 rounded-xl bg-[#050607]/80 backdrop-blur-md text-[#F5F7F2] hover:text-[#A3E635] border border-white/10 transition"
-                        title="Telegram / Instagram orqali ulashish"
-                      >
-                        <Share2 className="w-3.5 h-3.5" />
-                      </button>
+                    {/* Project Title */}
+                    <Link href={`/works/${project.slug}`}>
+                      <h3 className="text-base sm:text-lg font-display font-semibold text-[#F5F7F2] group-hover:text-[#A3E635] transition duration-200 line-clamp-1">
+                        {project.titleUz}
+                      </h3>
+                    </Link>
 
+                    {/* Project Description */}
+                    <p className="text-xs font-sans font-normal text-[#9CA3AF] mt-1.5 line-clamp-2 leading-relaxed">
+                      {project.descUz}
+                    </p>
+                  </div>
+
+                  {/* Footer Metrics & Actions */}
+                  <div className="pt-3.5 border-t border-white/5 flex items-center justify-between">
+                    <div className="flex items-center gap-3 text-xs font-sans text-[#6B7280]">
+                      <span className="flex items-center gap-1">
+                        <Eye className="w-3.5 h-3.5" /> {project.views}
+                      </span>
                       <button
                         onClick={(e) => handleLike(e, project.id, project.slug)}
-                        className={`p-2 rounded-xl bg-[#050607]/80 backdrop-blur-md border border-white/10 transition ${
-                          isLiked ? "text-rose-500" : "text-[#F5F7F2] hover:text-rose-400"
-                        }`}
-                        title="Yoqtirish"
+                        className={`flex items-center transition ${isLiked ? "text-rose-500 scale-110" : "hover:text-rose-400 text-[#6B7280]"}`}
+                        title="Loyiha sizga yoqdimi?"
                       >
                         <Heart className="w-3.5 h-3.5" fill={isLiked ? "currentColor" : "none"} />
                       </button>
                     </div>
-                  </Link>
 
-                  {/* Info Content */}
-                  <div className="p-6 space-y-3 flex-1 flex flex-col justify-between font-sans">
-                    <div>
-                      {/* Metadata: sana, mijoz (Inter 400) */}
-                      <div className="flex items-center justify-between text-[11px] font-sans text-[#6B7280] mb-1">
-                        <span>{project.client || "Shaxsiy"}</span>
-                        <span>{project.year || "2026"}</span>
-                      </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={(e) => openShare(e, project.slug, project.titleUz)}
+                        className="text-xs font-sans font-medium text-[#9CA3AF] hover:text-[#A3E635] transition flex items-center gap-1"
+                      >
+                        <Share2 className="w-3.5 h-3.5" />
+                        <span>Ulashish</span>
+                      </button>
 
-                      {/* Project Title (Space Grotesk 500-600) */}
-                      <Link href={`/works/${project.slug}`}>
-                        <h3 className="text-lg sm:text-xl font-display font-semibold text-[#F5F7F2] group-hover:text-[#A3E635] transition duration-300 line-clamp-1">
-                          {project.titleUz}
-                        </h3>
+                      <Link
+                        href={`/works/${project.slug}`}
+                        className="inline-flex items-center gap-1 text-xs font-sans font-medium text-[#F5F7F2] group-hover:text-[#A3E635] transition"
+                      >
+                        <span>Ko'rish</span>
+                        <ArrowUpRight className="w-3.5 h-3.5" />
                       </Link>
-
-                      {/* Project Description (Inter 400) */}
-                      <p className="text-xs font-sans font-normal text-[#9CA3AF] mt-1.5 line-clamp-2 leading-relaxed">
-                        {project.descUz}
-                      </p>
-                    </div>
-
-                    {/* Footer Metrics & Actions (Like count hidden as requested) */}
-                    <div className="pt-4 border-t border-white/5 flex items-center justify-between">
-                      <div className="flex items-center gap-3 text-xs font-sans text-[#6B7280]">
-                        <span className="flex items-center gap-1">
-                          <Eye className="w-3.5 h-3.5" /> {project.views}
-                        </span>
-                        {/* Interactive heart indicator (count hidden) */}
-                        <button
-                          onClick={(e) => handleLike(e, project.id, project.slug)}
-                          className={`flex items-center transition ${isLiked ? "text-rose-500 scale-110" : "hover:text-rose-400 text-[#6B7280]"}`}
-                          title="Loyiha sizga yoqdimi?"
-                        >
-                          <Heart className="w-3.5 h-3.5" fill={isLiked ? "currentColor" : "none"} />
-                        </button>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={(e) => openShare(e, project.slug, project.titleUz)}
-                          className="text-xs font-sans font-medium text-[#9CA3AF] hover:text-[#A3E635] transition flex items-center gap-1"
-                        >
-                          <Share2 className="w-3.5 h-3.5" />
-                          <span>Ulashish</span>
-                        </button>
-
-                        <Link
-                          href={`/works/${project.slug}`}
-                          className="inline-flex items-center gap-1 text-xs font-sans font-medium text-[#F5F7F2] group-hover:text-[#A3E635] transition"
-                        >
-                          <span>Ko'rish</span>
-                          <ArrowUpRight className="w-3.5 h-3.5" />
-                        </Link>
-                      </div>
                     </div>
                   </div>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
-      {/* Share Modal (Telegram, Instagram, Copy Link) */}
-      <AnimatePresence>
-        {shareModal && shareModal.open && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-md p-6 rounded-3xl glass-panel border border-white/15 bg-[#0D1112] shadow-2xl space-y-6 font-sans"
-            >
-              <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                <div>
-                  <h3 className="text-base font-display font-semibold text-[#F5F7F2]">
-                    Loyihani ulashish
-                  </h3>
-                  <p className="text-xs text-[#9CA3AF] mt-0.5 line-clamp-1">
-                    {shareModal.title}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShareModal(null)}
-                  className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-[#9CA3AF] transition"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
+      {/* Share Modal Dialog */}
+      {shareModal?.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+          <div className="relative w-full max-w-sm p-6 rounded-3xl glass-panel border border-white/15 bg-[#0D1112] shadow-2xl space-y-5 font-sans">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <h4 className="text-sm font-semibold text-[#F5F7F2] font-display">
+                Loyihani ulashish
+              </h4>
+              <button
+                onClick={() => setShareModal(null)}
+                className="p-1 rounded-lg text-[#9CA3AF] hover:text-white hover:bg-white/10 transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
 
-              {/* Share Actions */}
-              <div className="space-y-3">
-                {/* Telegram Share */}
-                <a
-                  href={`https://t.me/share/url?url=${encodeURIComponent(typeof window !== "undefined" ? `${window.location.origin}/works/${shareModal.slug}` : "")}&text=${encodeURIComponent(`Otajon Jahongirov portfolio loyihasi: ${shareModal.title}`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full p-3.5 rounded-2xl bg-white/5 hover:bg-[#A3E635]/15 border border-white/10 hover:border-[#A3E635]/40 flex items-center justify-between transition group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#0088cc]/20 text-[#0088cc] group-hover:bg-[#A3E635]/20 group-hover:text-[#A3E635] flex items-center justify-center transition">
-                      <Send className="w-5 h-5" />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-xs font-semibold text-[#F5F7F2]">Telegram orqali ulashish</p>
-                      <p className="text-[11px] text-[#9CA3AF]">Do'stlaringiz yoki guruhlarga jo'nating</p>
-                    </div>
-                  </div>
-                  <ArrowUpRight className="w-4 h-4 text-[#9CA3AF] group-hover:text-[#A3E635] transition" />
-                </a>
+            <p className="text-xs text-[#9CA3AF] leading-relaxed">
+              <strong className="text-[#F5F7F2]">"{shareModal.title}"</strong> loyihasini do'stlaringiz yoki mijozlaringiz bilan ulashing:
+            </p>
 
-                {/* Instagram Share */}
-                <button
-                  onClick={() => {
-                    copyShareLink();
-                    window.open("https://instagram.com", "_blank");
-                  }}
-                  className="w-full p-3.5 rounded-2xl bg-white/5 hover:bg-pink-500/15 border border-white/10 hover:border-pink-500/40 flex items-center justify-between transition group text-left"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-pink-500/20 text-pink-400 flex items-center justify-center transition">
-                      <Instagram className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-[#F5F7F2]">Instagram Stories / Direct</p>
-                      <p className="text-[11px] text-[#9CA3AF]">Havola nusxalanadi va Instagram ochiladi</p>
-                    </div>
-                  </div>
-                  <ArrowUpRight className="w-4 h-4 text-[#9CA3AF] group-hover:text-pink-400 transition" />
-                </button>
+            <div className="space-y-2.5">
+              <button
+                onClick={() => shareTelegram(shareModal.slug, shareModal.title)}
+                className="w-full py-3 px-4 rounded-xl bg-[#229ED9]/15 hover:bg-[#229ED9]/25 border border-[#229ED9]/30 flex items-center justify-center gap-2 text-xs font-semibold text-[#F5F7F2] transition"
+              >
+                <Send className="w-4 h-4 text-[#229ED9]" />
+                <span>Telegram orqali yuborish</span>
+              </button>
 
-                {/* Copy Link */}
-                <button
-                  onClick={copyShareLink}
-                  className="w-full p-3.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-between transition group text-left"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-white/10 text-[#F5F7F2] flex items-center justify-center transition">
-                      {copied ? <Check className="w-5 h-5 text-[#A3E635]" /> : <Copy className="w-5 h-5" />}
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-[#F5F7F2]">
-                        {copied ? "Havola nusxalandi!" : "Havolani nusxalash"}
-                      </p>
-                      <p className="text-[11px] text-[#9CA3AF]">To'g'ridan-to'g'ri havolani oling</p>
-                    </div>
-                  </div>
-                  {copied ? (
-                    <Check className="w-4 h-4 text-[#A3E635]" />
-                  ) : (
-                    <Copy className="w-4 h-4 text-[#9CA3AF]" />
-                  )}
-                </button>
-              </div>
-            </motion.div>
+              <button
+                onClick={() => shareInstagram(shareModal.slug)}
+                className="w-full py-3 px-4 rounded-xl bg-[#E1306C]/15 hover:bg-[#E1306C]/25 border border-[#E1306C]/30 flex items-center justify-center gap-2 text-xs font-semibold text-[#F5F7F2] transition"
+              >
+                <Instagram className="w-4 h-4 text-[#E1306C]" />
+                <span>Instagram (Havolani nusxalash)</span>
+              </button>
+
+              <button
+                onClick={() => copyDirectLink(shareModal.slug)}
+                className="w-full py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center gap-2 text-xs font-semibold text-[#F5F7F2] transition"
+              >
+                {copied ? <Check className="w-4 h-4 text-[#A3E635]" /> : <Copy className="w-4 h-4 text-[#9CA3AF]" />}
+                <span>{copied ? "Nusxalandi!" : "To'g'ridan-to'g'ri havola"}</span>
+              </button>
+            </div>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
     </div>
   );
 }
