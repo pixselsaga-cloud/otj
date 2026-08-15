@@ -1,0 +1,623 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------
+// 1. AUTHENTICATION & USERS
+// ----------------------------------------------------
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  role         String    @default("ADMIN") // ADMIN, EDITOR, CLIENT, VIEWER
+  avatar       String?
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  auditLogs    AuditLog[]
+}
+
+// ----------------------------------------------------
+// 2. PROJECTS & PORTFOLIO CMS
+// ----------------------------------------------------
+model Project {
+  id               String    @id @default(cuid())
+  slug             String    @unique
+  titleUz          String
+  titleRu          String
+  titleEn          String
+  descUz           String
+  descRu           String
+  descEn           String
+  fullDescUz       String?
+  fullDescRu       String?
+  fullDescEn       String?
+  client           String?
+  category         String    // 3D CGI & Motion, Branding, UI/UX, Posters, Motion, Web, Other
+  subcategory      String?
+  year             String    @default("2026")
+  location         String?   @default("Tashkent, UZ")
+  services         String?   // JSON or comma separated string
+  tools            String?   // Blender, Cinema 4D, Figma, After Effects, etc.
+  tags             String?   // luxury, 3d, visual, identity
+  coverImage       String
+  gallery          String?   // JSON array of URLs or media objects
+  videos           String?   // JSON array of video URLs
+  externalLinks    String?   // JSON array of links (Behance, Dribbble, Live)
+  projectUrl       String?
+  clientLogo       String?
+  credits          String?
+  status           String    @default("PUBLISHED") // DRAFT, PUBLISHED, ARCHIVED
+  featured         Boolean   @default(false)
+  sortOrder        Int       @default(0)
+  views            Int       @default(0)
+  likes            Int       @default(0)
+  bookmarks        Int       @default(0)
+  shares           Int       @default(0)
+  seoTitleUz       String?
+  seoTitleRu       String?
+  seoTitleEn       String?
+  seoDescUz        String?
+  seoDescRu        String?
+  seoDescEn        String?
+  ogImage          String?
+  watermarkEnabled Boolean   @default(false)
+  deletedAt        DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  media            ProjectMedia[]
+  versions         ProjectVersion[]
+  fileRecords      FileRecord[]
+  clientRooms      ClientRoom[]
+}
+
+model ProjectMedia {
+  id               String    @id @default(cuid())
+  projectId        String
+  project          Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  fileId           String?
+  type             String    @default("IMAGE") // IMAGE, VIDEO, 3D, DOCUMENT
+  url              String
+  thumbnail        String?
+  title            String?
+  caption          String?
+  altText          String?
+  sortOrder        Int       @default(0)
+  isCover          Boolean   @default(false)
+  watermarkApplied Boolean   @default(false)
+  deletedAt        DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model ProjectVersion {
+  id            String   @id @default(cuid())
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  versionNumber String   // e.g. v1.0, v2.0, Final
+  versionName   String   // e.g. Concept Draft, Client Polish, Final Deliverable
+  changes       String?
+  fileUrl       String?
+  createdAt     DateTime @default(now())
+}
+
+// ----------------------------------------------------
+// 3. SERVICES CMS
+// ----------------------------------------------------
+model Service {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  titleUz       String
+  titleRu       String
+  titleEn       String
+  shortDescUz   String
+  shortDescRu   String
+  shortDescEn   String
+  fullDescUz    String?
+  fullDescRu    String?
+  fullDescEn    String?
+  icon          String    @default("Sparkles")
+  startingPrice String    @default("$1,000")
+  deliveryTime  String    @default("2-3 hafta")
+  category      String    @default("Design & CGI")
+  featuresUz    String    // JSON array of feature strings
+  featuresRu    String    // JSON array of feature strings
+  featuresEn    String    // JSON array of feature strings
+  images        String?   // JSON array
+  featured      Boolean   @default(false)
+  status        String    @default("PUBLISHED") // PUBLISHED, DRAFT, ARCHIVED
+  sortOrder     Int       @default(0)
+  ctaTextUz     String?   @default("Buyurtma berish")
+  ctaTextRu     String?   @default("Заказать")
+  ctaTextEn     String?   @default("Order Service")
+  ctaUrl        String?   @default("/request")
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// ----------------------------------------------------
+// 4. HOMEPAGE & IDENTITY CMS (STATS, PROCESS, SKILLS, EXP, AWARDS, SOCIALS)
+// ----------------------------------------------------
+model Statistic {
+  id        String   @id @default(cuid())
+  labelUz   String
+  labelRu   String
+  labelEn   String
+  value     String   // e.g. 100, 99, 50, 7
+  prefix    String?  // e.g. + or $
+  suffix    String?  // e.g. +, %, M+
+  icon      String?  @default("TrendingUp")
+  sortOrder Int      @default(0)
+  isVisible Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ProcessStep {
+  id        String   @id @default(cuid())
+  stepNumber String  // e.g. 01, 02, 03
+  titleUz   String
+  titleRu   String
+  titleEn   String
+  descUz    String
+  descRu    String
+  descEn    String
+  icon      String?  @default("Compass")
+  sortOrder Int      @default(0)
+  isVisible Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Skill {
+  id            String   @id @default(cuid())
+  name          String
+  percentage    Int      @default(90)
+  category      String   @default("3D & Visual") // 3D & Visual, UI/UX, Motion, Development, Creative Direction
+  icon          String?  @default("Layers")
+  descriptionUz String?
+  descriptionRu String?
+  descriptionEn String?
+  sortOrder     Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Experience {
+  id              String    @id @default(cuid())
+  company         String
+  roleUz          String
+  roleRu          String
+  roleEn          String
+  startYear       String
+  endYear         String?   // e.g. "Present" or "2024"
+  isCurrent       Boolean   @default(false)
+  descUz          String?
+  descRu          String?
+  descEn          String?
+  logo            String?
+  location        String?   @default("Tashkent, UZ")
+  achievementsUz  String?   // JSON array
+  achievementsRu  String?   // JSON array
+  achievementsEn  String?   // JSON array
+  sortOrder       Int       @default(0)
+  isActive        Boolean   @default(true)
+  deletedAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Award {
+  id          String   @id @default(cuid())
+  titleUz     String
+  titleRu     String
+  titleEn     String
+  issuer      String   // e.g. Awwwards, FWA, Behance Featured, Red Dot
+  year        String   @default("2025")
+  projectLink String?
+  icon        String?  @default("Trophy")
+  sortOrder   Int      @default(0)
+  isVisible   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SocialLink {
+  id        String   @id @default(cuid())
+  platform  String   // Instagram, Telegram, Behance, Dribbble, YouTube, LinkedIn, X, GitHub, ArtStation
+  username  String
+  url       String
+  icon      String   // Instagram, Send, Globe, Youtube, Linkedin, Twitter, Github
+  labelUz   String?
+  labelRu   String?
+  labelEn   String?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Testimonial {
+  id            String   @id @default(cuid())
+  clientName    String
+  clientRole    String
+  clientCompany String
+  clientAvatar  String?
+  contentUz     String
+  contentRu     String
+  contentEn     String
+  rating        Int      @default(5)
+  projectLink   String?
+  isFeatured    Boolean  @default(true)
+  isVisible     Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ----------------------------------------------------
+// 5. FILE & ASSET MANAGEMENT SYSTEM
+// ----------------------------------------------------
+model FileFolder {
+  id        String       @id @default(cuid())
+  name      String
+  parentId  String?
+  color     String?      @default("#A3E635")
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  files     FileRecord[]
+}
+
+model FileRecord {
+  id             String        @id @default(cuid())
+  originalName   String
+  fileName       String
+  mimeType       String
+  size           Int           // in bytes
+  path           String
+  publicUrl      String
+  folderId       String?
+  folder         FileFolder?   @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  category       String        @default("Uncategorized") // 3D Models, Renders, Brand Assets, UI Kits, Audio, Video, Docs
+  tags           String?       // JSON array or comma list
+  visibility     String        @default("PRIVATE") // PRIVATE, CLIENT_VISIBLE, DOWNLOADABLE, VIEW_ONLY
+  status         String        @default("READY") // UPLOAD, PROCESSING, READY, ARCHIVED, TRASHED
+  projectId      String?
+  project        Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  clientId       String?
+  version        Int           @default(1)
+  parentFileId   String?
+  deletedAt      DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  versions       FileVersion[]
+  deliverables   Deliverable[]
+}
+
+model FileVersion {
+  id            String     @id @default(cuid())
+  fileRecordId  String
+  fileRecord    FileRecord @relation(fields: [fileRecordId], references: [id], onDelete: Cascade)
+  versionNumber Int
+  versionName   String     // v1, v2, Final, etc.
+  path          String
+  publicUrl     String
+  size          Int
+  changeNotes   String?
+  createdAt     DateTime   @default(now())
+}
+
+// ----------------------------------------------------
+// 6. CLIENT PORTAL & CLIENT ROOMS
+// ----------------------------------------------------
+model Client {
+  id          String       @id @default(cuid())
+  name        String
+  company     String?
+  email       String       @unique
+  phone       String?
+  telegram    String?
+  avatar      String?
+  notes       String?
+  status      String       @default("ACTIVE") // ACTIVE, LEAD, ARCHIVED
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  rooms       ClientRoom[]
+}
+
+model ClientRoom {
+  id                String            @id @default(cuid())
+  accessCode        String            @unique // e.g. OTJ-8942
+  clientId          String
+  client            Client            @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  projectId         String?
+  project           Project?          @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  title             String
+  welcomeMessageUz  String?
+  welcomeMessageRu  String?
+  welcomeMessageEn  String?
+  status            String            @default("ACTIVE") // ACTIVE, IN_PROGRESS, REVIEW, COMPLETED, ARCHIVED
+  deadline          DateTime?
+  progress          Int               @default(0) // 0 - 100%
+  isApproved        Boolean           @default(false)
+  approvedAt        DateTime?
+  approvedBy        String?
+  deletedAt         DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  milestones        Milestone[]
+  deliverables      Deliverable[]
+  messages          ClientMessage[]
+  revisions         RevisionRequest[]
+  approvals         ProjectApproval[]
+}
+
+model Milestone {
+  id            String     @id @default(cuid())
+  clientRoomId  String
+  clientRoom    ClientRoom @relation(fields: [clientRoomId], references: [id], onDelete: Cascade)
+  titleUz       String
+  titleRu       String
+  titleEn       String
+  descUz        String?
+  descRu        String?
+  descEn        String?
+  status        String     @default("WAITING") // WAITING, IN_PROGRESS, REVIEW, COMPLETED
+  dueDate       DateTime?
+  sortOrder     Int        @default(0)
+  completedAt   DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model Deliverable {
+  id            String      @id @default(cuid())
+  clientRoomId  String
+  clientRoom    ClientRoom  @relation(fields: [clientRoomId], references: [id], onDelete: Cascade)
+  fileRecordId  String?
+  fileRecord    FileRecord? @relation(fields: [fileRecordId], references: [id], onDelete: SetNull)
+  titleUz       String
+  titleRu       String
+  titleEn       String
+  descriptionUz String?
+  descriptionRu String?
+  descriptionEn String?
+  fileUrl       String
+  fileType      String      @default("RENDER") // RENDER, SOURCE, ARCHIVE, PDF, VIDEO
+  accessLevel   String      @default("DOWNLOADABLE") // VIEW_ONLY, DOWNLOADABLE
+  isFinal       Boolean     @default(false)
+  sortOrder     Int         @default(0)
+  downloadsCount Int        @default(0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model ClientMessage {
+  id            String     @id @default(cuid())
+  clientRoomId  String
+  clientRoom    ClientRoom @relation(fields: [clientRoomId], references: [id], onDelete: Cascade)
+  senderType    String     // CLIENT, ADMIN
+  senderName    String
+  content       String
+  attachments   String?    // JSON array of file objects
+  isPinned      Boolean    @default(false)
+  isResolved    Boolean    @default(false)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model RevisionRequest {
+  id            String     @id @default(cuid())
+  clientRoomId  String
+  clientRoom    ClientRoom @relation(fields: [clientRoomId], references: [id], onDelete: Cascade)
+  title         String
+  description   String
+  attachments   String?    // JSON array of files
+  status        String     @default("REQUESTED") // REQUESTED, REVIEWING, IN_PROGRESS, READY_FOR_REVIEW, APPROVED, CANCELLED
+  priority      String     @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  adminNotes    String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model ProjectApproval {
+  id           String     @id @default(cuid())
+  clientRoomId String
+  clientRoom   ClientRoom @relation(fields: [clientRoomId], references: [id], onDelete: Cascade)
+  approvedBy   String
+  signature    String?
+  feedback     String?
+  rating       Int        @default(5)
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime   @default(now())
+}
+
+// ----------------------------------------------------
+// 7. BRIEFS & AI BRIEF ANALYZER
+// ----------------------------------------------------
+model Brief {
+  id               String         @id @default(cuid())
+  clientName       String
+  email            String
+  phone            String?
+  telegram         String?
+  company          String?
+  projectTypes     String         // JSON array: ["Branding", "3D", "UI/UX", "Motion"]
+  description      String
+  budgetRange      String         // e.g. "$1,000 - $3,000", "$5,000+"
+  deadlineRange    String         // e.g. "1-2 weeks", "1 month"
+  requiredServices String?        // JSON array
+  referenceFiles   String?        // JSON array of URLs
+  referenceLinks   String?        // JSON array
+  additionalInfo   String?
+  status           String         @default("NEW") // NEW, REVIEWING, CONTACTED, QUOTED, NEGOTIATING, APPROVED, IN_PROGRESS, COMPLETED, REJECTED, CANCELLED, ARCHIVED
+  deletedAt        DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  analysis         BriefAnalysis?
+}
+
+model BriefAnalysis {
+  id                     String   @id @default(cuid())
+  briefId                String   @unique
+  brief                  Brief    @relation(fields: [briefId], references: [id], onDelete: Cascade)
+  summary                String
+  clientRequirements     String   // JSON array or markdown
+  suggestedServices      String   // JSON array
+  estimatedComplexity    String   // Low, Medium, High, Extreme
+  urgency                String   // Low, Normal, High, Critical
+  potentialRisks         String   // JSON array
+  recommendedNextSteps   String   // JSON array
+  questionsToAsk         String   // JSON array of questions
+  budgetInterpretation   String
+  timelineInterpretation String
+  rawAiOutput            String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+// ----------------------------------------------------
+// 8. CONTACT MESSAGES & INBOX
+// ----------------------------------------------------
+model ContactMessage {
+  id           String    @id @default(cuid())
+  name         String
+  email        String
+  phone        String?
+  telegram     String?
+  subject      String?
+  message      String
+  status       String    @default("UNREAD") // UNREAD, READ, REPLIED, ARCHIVED, DELETED
+  priority     String    @default("NORMAL") // NORMAL, HIGH, URGENT
+  source       String    @default("CONTACT_FORM")
+  replyMessage String?
+  repliedAt    DateTime?
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+// ----------------------------------------------------
+// 9. SITE SETTINGS & SEO
+// ----------------------------------------------------
+model SiteSettings {
+  id                String   @id @default("default")
+  siteTitle         String   @default("Otajon Jahongirov — Premium Visual & Digital Studio")
+  authorName        String   @default("Otajon Jahongirov")
+  headlineUz        String   @default("Visual g'oyalarni haqiqiy tajribaga aylantiraman.")
+  headlineRu        String   @default("Превращаю визуальные идеи в осязаемый опыт.")
+  headlineEn        String   @default("Transforming visual concepts into immersive reality.")
+  bioUz             String   @default("Professional AI Menejer & Visual Director.")
+  bioRu             String   @default("Профессиональный AI Менеджер и Visual Director.")
+  bioEn             String   @default("Professional AI Manager & Visual Director.")
+  longBioUz         String?
+  longBioRu         String?
+  longBioEn         String?
+  profilePhoto      String   @default("/avatar.jpg")
+  coverImage        String?  @default("/covers/studio-hero.jpg")
+  email             String   @default("pixselsaga@gmail.com")
+  phone             String   @default("+998 90 000 00 00")
+  telegram          String   @default("@otajon9999")
+  location          String   @default("Navoiy, O'zbekiston")
+  availabilityUz    String   @default("Yangi loyihalar uchun ochiq")
+  availabilityRu    String   @default("Доступен для новых проектов")
+  availabilityEn    String   @default("Available for new projects")
+  yearsOfExperience Int      @default(3)
+  clientCount       Int      @default(127)
+  projectCount      Int      @default(8)
+  awardCount        Int      @default(0)
+  footerTextUz      String   @default("Zamonaviy vizual texnologiyalar va mukammal dizayn standarti.")
+  footerTextRu      String   @default("Современные визуальные технологии и бескомпромиссные стандарты дизайна.")
+  footerTextEn      String   @default("Modern visual engineering and uncompromised design excellence.")
+  copyright         String   @default("© 2026 Otajon Jahongirov. All rights reserved.")
+  primaryColor      String   @default("#A3E635")
+  accentColor       String   @default("#BEF264")
+  watermarkText     String   @default("OTAJON JAHONGIROV STUDIO")
+  watermarkPosition String   @default("BOTTOM_RIGHT") // BOTTOM_RIGHT, CENTER, TILED
+  watermarkOpacity  Float    @default(0.35)
+  watermarkSize     Int      @default(18)
+  watermarkEnabled  Boolean  @default(true)
+  seoTitleUz        String?  @default("Otajon Jahongirov — AI Menejer & Visual Studio")
+  seoTitleRu        String?  @default("Отаджон Джахонгиров — AI Менеджер и Дизайн Студия")
+  seoTitleEn        String?  @default("Otajon Jahongirov — AI Manager & Visual Studio")
+  seoDescUz         String?  @default("AI Vizualizatsiya, 3D CGI, Brand Identity va raqamli boshqaruv platformasi.")
+  seoDescRu         String?  @default("Премиальная цифровая студия AI визуализации, 3D CGI и брендинга.")
+  seoDescEn         String?  @default("High-end creative studio specializing in AI visuals, 3D CGI and brand management.")
+  ogImage           String?  @default("/og-image.jpg")
+  keywordsUz        String?  @default("ai vizualizatsiya, 3d dizayn, cgi, brending, otajon jahongirov, navoiy")
+  keywordsRu        String?  @default("ai визуализация, 3d дизайн, cgi, брендинг, отаджон джахонгиров")
+  keywordsEn        String?  @default("ai visual, 3d cgi, visual design, branding, otajon jahongirov")
+  canonicalUrl      String?  @default("https://otj.studio")
+  robotsSettings    String   @default("index, follow")
+  updatedAt         DateTime @updatedAt
+}
+
+model NavigationItem {
+  id        String   @id @default(cuid())
+  labelUz   String
+  labelRu   String
+  labelEn   String
+  url       String
+  sortOrder Int      @default(0)
+  isVisible Boolean  @default(true)
+  isExternal Boolean @default(false)
+  icon      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ----------------------------------------------------
+// 10. REAL ANALYTICS & AUDIT LOGS & NOTIFICATIONS
+// ----------------------------------------------------
+model AnalyticsEvent {
+  id         String   @id @default(cuid())
+  eventType  String   // page_view, project_view, like, bookmark, share, download, contact_submit, brief_submit, client_login, file_download, project_approval, cta_click
+  path       String
+  entityType String?  // project, service, file, client_room
+  entityId   String?
+  metadata   String?  // JSON string with details (e.g. referrer, duration, buttonName)
+  ipHash     String?
+  userAgent  String?
+  referrer   String?
+  createdAt  DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userName  String?
+  userEmail String?
+  action    String   // CREATE, UPDATE, DELETE, RESTORE, ARCHIVE, PUBLISH, UNPUBLISH, DUPLICATE, LOGIN
+  entity    String   // Project, Service, File, ClientRoom, Brief, Settings, Skill, Experience
+  entityId  String?
+  metadata  String?  // JSON string of changes
+  ipAddress String?
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  type      String   @default("SYSTEM") // BRIEF, MESSAGE, REVISION, APPROVAL, FILE, SYSTEM
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
