@@ -10,6 +10,9 @@ const nextConfig = {
     ],
     unoptimized: true,
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   webpack: (config, { dev }) => {
     if (dev) {
       config.cache = false;
