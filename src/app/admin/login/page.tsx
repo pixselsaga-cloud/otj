@@ -5,21 +5,21 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
-import { ShieldCheck, ArrowRight } from "lucide-react";
+import { ShieldCheck, ArrowRight, Lock } from "lucide-react";
 
 export default function AdminLoginPage() {
   const router = useRouter();
   const toast = useToast();
 
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email || !password) {
-      toast.error("Email va parolni kiriting");
+    if (!username || !password) {
+      toast.error("Login va parolni kiriting");
       return;
     }
 
@@ -28,7 +28,7 @@ export default function AdminLoginPage() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: username, password }),
       });
 
       if (!res.ok) {
@@ -46,7 +46,7 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-[#050607]">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-[#050607] font-sans">
       {/* Ambient Glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#A3E635]/10 rounded-full blur-[140px] pointer-events-none" />
 
@@ -65,11 +65,10 @@ export default function AdminLoginPage() {
 
         <form onSubmit={handleLogin} className="space-y-4 pt-2">
           <Input
-            label="Email manzil"
-            type="email"
-            placeholder="admin@otj.studio"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            label="Login yoki Email (Username)"
+            placeholder="Otajon2009$ yoki admin@otj.studio"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             required
             autoFocus
           />
@@ -87,7 +86,7 @@ export default function AdminLoginPage() {
             type="submit"
             variant="primary"
             size="lg"
-            className="w-full justify-center mt-2"
+            className="w-full justify-center mt-2 font-semibold text-xs uppercase tracking-wider"
             isLoading={isLoading}
           >
             <span>Tizimga kirish</span>
